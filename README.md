@@ -52,3 +52,16 @@ This project is largely based on Thomas N. Kipf's GCN [code](https://github.com/
 * WebKB: http://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-11/www/wwkb/
 
 Thanks them for providing first-hand data.
+
+## Citation
+If your work relies on this repository or uses the dataset we provided, please cite the following paper.
+```
+@inproceedings{li2021dimensionwise,
+      author    = "Li, Qimai and Zhang, Xiaotong and Liu, Han and Dai, Quanyu and Wu, Xiao-Ming",
+      title     = "Dimensionwise Separable 2-D Graph Convolution for Unsupervised and Semi-Supervised Learning on Graphs",
+      booktitle = "Proceedings of *the 27th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD ’21)",
+      year      = 2021,
+      publisher = "ACM",
+      address   = "New York, NY, USA"
+    }
+```
