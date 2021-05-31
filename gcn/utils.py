@@ -130,96 +130,13 @@ def split_dataset(onehot_labels, labelids, train_size, test_size, validation_siz
 
 
 def load_data(dataset_str, train_size, validation_size, model_config, shuffle=True):
-    if dataset_str in ['ogbn-arxiv']:
-        from ogb.nodeproppred import NodePropPredDataset
-        dataset = NodePropPredDataset('ogbn-arxiv', root='data/')
-        l = dataset.labels.flatten()
-        labels = np.zeros([l.shape[0], np.max(l) + 1])
-        labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
-
-        n = dataset.graph['num_nodes']
-        edge_index = dataset.graph['edge_index']
-        adj = sp.csc_matrix((np.ones(edge_index.shape[1]), edge_index), shape=(n, n))
-        adj = adj + adj.T
-        adj.data = np.ones_like(adj.data)
-        features = dataset.graph['node_feat']
-        split = dataset.get_idx_split()
-        idx_train, idx_val, idx_test = split['train'], split['valid'], split['test']
-        data = sio.loadmat('data/ogbn_arxiv/{}.mat'.format(dataset_str, dataset_str))
-        features = data['X']
-        # idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
-        #                                          validate=model_config['validate'], shuffle=shuffle)
-    elif dataset_str in ['large_cora', '20news', 'wiki'] or dataset_str.startswith('webkb'):
+    if dataset_str in ['large_cora', '20news', 'wiki'] or dataset_str.startswith('webkb'):
         data = sio.loadmat('data/{}.mat'.format(dataset_str))
         l = data['labels'].flatten()
         labels = np.zeros([l.shape[0], np.max(l) + 1])
         labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
         features = data['X']
         adj = data['G'] if 'G' in data else sp.eye(features.shape[0], dtype=features.dtype)
-        # edge_statistic = adj.dot(labels).T.dot(labels)
-        # G = nx.from_scipy_sparse_matrix(adj)
-        # com = [*nx.connected_components(G)]
-        idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
-                                                 validate=model_config['validate'], shuffle=shuffle)
-    elif dataset_str == 'Hindroid':
-        data = sio.loadmat('data/{}.mat'.format(dataset_str))
-        l = data['labels'].flatten()
-        labels = np.zeros([l.shape[0], np.max(l) + 1])
-        labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
-        features = data['A']
-        P = data['P']
-        data['P'] = P + P + 10*sp.eye(P.shape[0])
-        adj = sp.eye(features.shape[0])
-        idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
-                                                 validate=model_config['validate'], shuffle=shuffle)
-    elif dataset_str == 'malware':
-        data = sio.loadmat('data/{}.mat'.format(dataset_str))
-        l = data['labels'].flatten()
-        labels = np.zeros([l.shape[0], np.max(l) + 1])
-        labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
-        if model_config['F']:
-            # features = data['X']
-            features = data['X2']
-            features = sp.hstack([data['X'], data['X2']])
-            model_config['F'] = None
-        else:
-            features = data['X']
-        adj = data['G'] if 'G' in data else sp.eye(features.shape[0], dtype=features.dtype)
-        # edge_statistic = adj.dot(labels).T.dot(labels)
-        # G = nx.from_scipy_sparse_matrix(adj)
-        # com = [*nx.connected_components(G)]
-        idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
-                                                 validate=model_config['validate'], shuffle=shuffle)
-
-    elif dataset_str in ['malware2']:
-        data = sio.loadmat('data/{}.mat'.format(dataset_str))
-        l = data['labels'].flatten()
-        labels = np.zeros([l.shape[0], np.max(data['labels']) + 1])
-        labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
-        features = data['X']
-        Perm = data['Perm']
-        # features = data['Perm']
-        # adj = Perm@Perm.T
-        adj = construct_knn_graph(Perm, 3)
-        # adj = data['G']
-        B = data['coblock']
-        B = normalize(B.T, norm='l1').T
-        # F = data['coblock']
-
-        if 'right_repeat' in model_config:
-            k = model_config['right_repeat']
-            if k: features = (1 - k) * features + k * features.dot(B)
-        idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
-                                                 validate=model_config['validate'], shuffle=shuffle)
-    elif dataset_str == 'malware2':
-        data = sio.loadmat('data/{}.mat'.format(dataset_str))
-        l = data['labels'].flatten()
-        labels = np.zeros([l.shape[0], np.max(l) + 1])
-        labels[np.arange(l.shape[0]), l.astype(np.int8)] = 1
-        features = data['X']
-        Perm = data['Perm']
-        # adj = Perm@Perm.T
-        adj = construct_knn_graph(Perm, 3)
         idx_train, idx_val, idx_test = split_dataset(labels, l, train_size, model_config['test_size'], validation_size,
                                                  validate=model_config['validate'], shuffle=shuffle)
     else:
